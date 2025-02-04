@@ -20,8 +20,8 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/node-js-sample .
-          docker save -o /tmp/docker-image.tar ${{ secrets.DOCKER_USERNAME }}/node-js-sample
+          docker build -t node-js-sample .
+          docker save -o /tmp/docker-image.tar node-js-sample
 
       - name: Save Docker image as artifact
         uses: actions/upload-artifact@v4
