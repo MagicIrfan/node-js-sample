@@ -50,7 +50,7 @@ jobs:
 
       - name: Run Docker container
         run: |
-          docker run -d -p 8080:8080 --name node-js-sample ${{ secrets.DOCKER_USERNAME }}/node-js-sample
+          docker run -d -p 8080:8080 --name node-js-sample node-js-sample
 
       - name: Check if container is running
         run: docker ps -a
@@ -79,4 +79,5 @@ jobs:
 
       - name: Push Docker image
         run: |
+          docker tag node-js-sample ${{ secrets.DOCKER_USERNAME }}/node-js-sample
           docker push ${{ secrets.DOCKER_USERNAME }}/node-js-sample
