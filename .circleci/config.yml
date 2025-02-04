@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  docker: circleci/docker@2.8.2
+
 jobs:
   build:
     docker:
@@ -8,10 +11,9 @@ jobs:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - run:
-          name: Build Docker image
-          command: |
-            docker build -t node-js-sample .
+      - docker/build:
+          image: $DOCKER_USERNAME/node-js-sample
+          tag: latest
       - persist_to_workspace:
           root: .
           paths:
@@ -28,27 +30,22 @@ jobs:
       - run:
           name: Run Docker container
           command: |
-            docker run -d -p 8080:8080 --name node-js-sample node-js-sample
+            docker run -d -p 8080:8080 --name node-js-sample $DOCKER_USERNAME/node-js-sample
       - run:
           name: Check if container is running
-          command: |
-            docker ps -a
+          command: docker ps -a
       - run:
           name: Check container logs
-          command: |
-            docker logs node-js-sample || echo "No logs found"
+          command: docker logs node-js-sample || echo "No logs found"
       - run:
           name: Wait for the app to be ready
-          command: |
-            sleep 5
+          command: sleep 5
       - run:
           name: Test application endpoint
-          command: |
-            docker exec node-js-sample curl --fail http://localhost:8080/ || (docker logs node-js-sample && exit 1)
+          command: docker exec node-js-sample curl --fail http://localhost:8080/ || (docker logs node-js-sample && exit 1)
       - run:
           name: Stop and remove container
-          command: |
-            docker stop node-js-sample && docker rm node-js-sample
+          command: docker stop node-js-sample && docker rm node-js-sample
 
   push:
     docker:
@@ -60,13 +57,10 @@ jobs:
           docker_layer_caching: true
       - run:
           name: Log in to Docker Hub
-          command: |
-            echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
-      - run:
-          name: Tag and push image
-          command: |
-            docker tag node-js-sample $DOCKER_USERNAME/node-js-sample
-            docker push $DOCKER_USERNAME/node-js-sample
+          command: docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+      - docker/publish:
+          image: $DOCKER_USERNAME/node-js-sample
+          tag: latest
 
 workflows:
   version: 2
