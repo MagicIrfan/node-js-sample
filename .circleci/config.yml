@@ -1,0 +1,81 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: cimg/node:current
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Build Docker image
+          command: |
+            docker build -t node-js-sample .
+      - persist_to_workspace:
+          root: .
+          paths:
+            - "*"
+
+  test:
+    docker:
+      - image: cimg/node:current
+    steps:
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Run Docker container
+          command: |
+            docker run -d -p 8080:8080 --name node-js-sample node-js-sample
+      - run:
+          name: Check if container is running
+          command: |
+            docker ps -a
+      - run:
+          name: Check container logs
+          command: |
+            docker logs node-js-sample || echo "No logs found"
+      - run:
+          name: Wait for the app to be ready
+          command: |
+            sleep 5
+      - run:
+          name: Test application endpoint
+          command: |
+            docker exec node-js-sample curl --fail http://localhost:8080/ || (docker logs node-js-sample && exit 1)
+      - run:
+          name: Stop and remove container
+          command: |
+            docker stop node-js-sample && docker rm node-js-sample
+
+  push:
+    docker:
+      - image: cimg/node:current
+    steps:
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Log in to Docker Hub
+          command: |
+            echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+      - run:
+          name: Tag and push image
+          command: |
+            docker tag node-js-sample $DOCKER_USERNAME/node-js-sample
+            docker push $DOCKER_USERNAME/node-js-sample
+
+workflows:
+  version: 2
+  build-test-push:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
+      - push:
+          requires:
+            - test
