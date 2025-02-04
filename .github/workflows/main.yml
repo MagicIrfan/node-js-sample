@@ -79,5 +79,4 @@ jobs:
 
       - name: Push Docker image
         run: |
-          docker tag node-js-sample ${{ secrets.DOCKER_USERNAME }}/node-js-sample
-          docker push ${{ secrets.DOCKER_USERNAME }}/node-js-sample
+          docker push node-js-sample
