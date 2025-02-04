@@ -65,7 +65,7 @@ jobs:
         run: docker exec node-js-sample curl --fail http://localhost:8080/ || (docker logs node-js-sample && exit 1)
 
       - name: Stop and remove container
-        run: docker stop node-js-sample && docker rm node-js-sample
+        run: docker stop node-js-sample
 
   push:
     runs-on: ubuntu-latest
