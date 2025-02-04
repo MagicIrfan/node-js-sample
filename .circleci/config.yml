@@ -58,7 +58,7 @@ jobs:
       - run:
           name: Log in to Docker Hub
           command: docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-      - docker/publish:
+      - docker/push:
           image: $DOCKER_USERNAME/node-js-sample
           tag: latest
 
